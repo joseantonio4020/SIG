@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/VisorDatosSIG.Api/">
+    <Project Path="VisorDatosSIG.Api/Api.csproj" />
+  </Folder>
+  <Folder Name="/VisorDatosSIG.Application/">
+    <Project Path="VisorDatosSIG.Application/Application.csproj" />
+  </Folder>
+  <Folder Name="/VisorDatosSIG.Domain/">
+    <Project Path="VisorDatosSIG.Domain/Domain.csproj" />
+  </Folder>
+  <Folder Name="/VisorDatosSIG.Infrastructure/">
+    <Project Path="VisorDatosSIG.Infrastructure/Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/VisorDatosSIG.Migrador/">
+    <Project Path="VisorDatosSIG.Migrador/Migrador.csproj" />
+  </Folder>
+  <Folder Name="/VisorDatosSIG.Web/">
+    <Project Path="VisorDatosSIG.Web/Web.csproj" />
+  </Folder>
+</Solution>

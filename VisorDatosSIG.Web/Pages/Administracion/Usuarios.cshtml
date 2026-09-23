@@ -1,0 +1,236 @@
+@page
+@model VisorDatosSIG.Web.Pages.Administracion.UsuariosModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Gestión de Usuarios";
+}
+
+<div class="page-content-scroll">
+    <div class="container-fluid max-w-1200">
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-1"><i class="fas fa-users-cog text-primary me-2"></i>Gestión de Usuarios y Roles</h3>
+                <p class="text-muted mb-0">Administración de cuentas de acceso, roles asignados y credenciales de seguridad.</p>
+            </div>
+            <div>
+                <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCrearUsuario">
+                    <i class="fas fa-user-plus me-1"></i> Nuevo Usuario
+                </button>
+            </div>
+        </div>
+
+        <!-- TABLA DE USUARIOS -->
+        <div class="card shadow-sm border-0 p-3 mb-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size:13px;">
+                    <thead class="table-light">
+                        <tr>
+                            <th># ID</th>
+                            <th>Usuario (Login)</th>
+                            <th>Nombre Completo</th>
+                            <th>Rol del Sistema</th>
+                            <th>Estado</th>
+                            <th>Fecha Creación</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaUsuarios">
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Cargando usuarios...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CREAR USUARIO -->
+<div class="modal fade" id="modalCrearUsuario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Registrar Nuevo Usuario</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCrearUsuario">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Login / Identificador</label>
+                        <input type="text" class="form-control" id="nuevoLogin" required placeholder="ej. juan.perez" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nombre Completo</label>
+                        <input type="text" class="form-control" id="nuevoNombre" required placeholder="ej. Juan Pérez Arce" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Contraseña Inicial</label>
+                        <input type="password" class="form-control" id="nuevoPassword" required minlength="6" placeholder="Mínimo 6 caracteres" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Rol Asignado</label>
+                        <select class="form-select" id="nuevoRol">
+                            <option value="Consultor" selected>Consultor (Visualización y consultas)</option>
+                            <option value="Administrador">Administrador (Control total y auditoría)</option>
+                            <option value="Catastro">Catastro (Operador territorial)</option>
+                            <option value="Lecturador">Lecturador (Inspección de medidores)</option>
+                            <option value="Cortador">Cortador (Gestión de cortes)</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarUsuario">Guardar Usuario</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL RESET PASSWORD -->
+<div class="modal fade" id="modalResetPassword" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="fas fa-key me-2"></i>Restablecer Contraseña</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="resetUserId" />
+                <p>Ingrese la nueva contraseña para el usuario <strong id="resetUserLogin"></strong>:</p>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nueva Contraseña</label>
+                    <input type="password" class="form-control" id="resetPasswordInput" minlength="6" placeholder="Mínimo 6 caracteres" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" id="btnConfirmResetPassword">Restablecer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            cargarUsuarios();
+
+            document.getElementById('btnGuardarUsuario').addEventListener('click', function () {
+                var login = document.getElementById('nuevoLogin').value.trim();
+                var nombre = document.getElementById('nuevoNombre').value.trim();
+                var password = document.getElementById('nuevoPassword').value;
+                var rol = document.getElementById('nuevoRol').value;
+
+                if (!login || !nombre || !password) {
+                    alert('Por favor complete todos los campos');
+                    return;
+                }
+
+                fetch('/api/administracion/usuarios', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login: login, nombre: nombre, password: password, rol: rol })
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.error) {
+                        alert('Error: ' + res.error);
+                    } else {
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('modalCrearUsuario'));
+                        modal.hide();
+                        document.getElementById('formCrearUsuario').reset();
+                        cargarUsuarios();
+                    }
+                })
+                .catch(err => {
+                    alert('Error en el servidor al crear usuario');
+                });
+            });
+
+            document.getElementById('btnConfirmResetPassword').addEventListener('click', function () {
+                var id = document.getElementById('resetUserId').value;
+                var pwd = document.getElementById('resetPasswordInput').value;
+
+                if (!pwd || pwd.length < 6) {
+                    alert('La contraseña debe tener al menos 6 caracteres');
+                    return;
+                }
+
+                fetch('/api/administracion/usuarios/' + id + '/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nuevoPassword: pwd })
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.error) {
+                        alert('Error: ' + res.error);
+                    } else {
+                        alert('Contraseña restablecida exitosamente');
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('modalResetPassword'));
+                        modal.hide();
+                        document.getElementById('resetPasswordInput').value = '';
+                    }
+                });
+            });
+        });
+
+        function cargarUsuarios() {
+            var tbody = document.getElementById('tablaUsuarios');
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Cargando usuarios...</td></tr>';
+
+            fetch('/api/administracion/usuarios')
+                .then(r => r.json())
+                .then(users => {
+                    tbody.innerHTML = '';
+                    if (!Array.isArray(users) || users.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No se encontraron usuarios</td></tr>';
+                        return;
+                    }
+
+                    users.forEach(function (u) {
+                        var tr = document.createElement('tr');
+                        var badgeRol = u.rol === 'Administrador' ? 'bg-primary' : 'bg-info';
+                        var badgeActivo = u.activo ? 'bg-success' : 'bg-danger';
+                        var estadoTexto = u.activo ? 'Activo' : 'Inactivo';
+
+                        tr.innerHTML =
+                            '<td><code>#' + u.idUsuario + '</code></td>' +
+                            '<td><strong>' + u.login + '</strong></td>' +
+                            '<td>' + u.nombre + '</td>' +
+                            '<td><span class="badge ' + badgeRol + '">' + u.rol + '</span></td>' +
+                            '<td><span class="badge ' + badgeActivo + '">' + estadoTexto + '</span></td>' +
+                            '<td>' + u.fechaCreacion + '</td>' +
+                            '<td class="text-center">' +
+                                '<div class="btn-group btn-group-sm">' +
+                                    '<button class="btn btn-outline-secondary" onclick="abrirReset(' + u.idUsuario + ', \'' + u.login + '\')" title="Restablecer Contraseña"><i class="fas fa-key"></i></button>' +
+                                    '<button class="btn ' + (u.activo ? 'btn-outline-danger' : 'btn-outline-success') + '" onclick="toggleEstado(' + u.idUsuario + ')" title="' + (u.activo ? 'Desactivar' : 'Activar') + '"><i class="fas ' + (u.activo ? 'fa-user-slash' : 'fa-user-check') + '"></i></button>' +
+                                '</div>' +
+                            '</td>';
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Error cargando usuarios</td></tr>';
+                });
+        }
+
+        function abrirReset(id, login) {
+            document.getElementById('resetUserId').value = id;
+            document.getElementById('resetUserLogin').textContent = login;
+            var modal = new bootstrap.Modal(document.getElementById('modalResetPassword'));
+            modal.show();
+        }
+
+        function toggleEstado(id) {
+            if (!confirm('¿Desea cambiar el estado de este usuario?')) return;
+            fetch('/api/administracion/usuarios/' + id + '/toggle-activo', { method: 'PUT' })
+                .then(r => r.json())
+                .then(res => {
+                    cargarUsuarios();
+                });
+        }
+    </script>
+}

@@ -1,0 +1,334 @@
+@page
+@model VisorDatosSIG.Web.Pages.ConsultasModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Consultas Alfanuméricas";
+}
+
+<div class="page-content-scroll">
+    <div class="container-fluid max-w-1200">
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-1"><i class="fas fa-search text-primary me-2"></i>Módulo de Consultas Alfanuméricas</h3>
+                <p class="text-muted mb-0">Búsqueda avanzada, filtrado multicriterio y exportación de datos catastrales.</p>
+            </div>
+            <div>
+                <button id="btnExportarCsv" class="btn btn-success shadow-sm">
+                    <i class="fas fa-file-csv me-1"></i> Exportar Resultados a CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- FILTROS DE CONSULTA -->
+        <div class="card shadow-sm border-0 mb-4 p-3">
+            <h6 class="fw-bold text-dark mb-3"><i class="fas fa-filter text-primary me-2"></i>Criterios de Filtrado</h6>
+            <div class="row g-2">
+                <div class="col-lg-3 col-md-4 col-sm-12">
+                    <label class="form-label form-label-sm fw-bold">Texto de Búsqueda</label>
+                    <input type="text" id="txtBusqueda" class="form-control form-control-sm" placeholder="Buscar por Nombre, Código SIG o Código Fijo..." />
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label form-label-sm fw-bold">Unidad Vecinal (UV)</label>
+                    <select id="selUV" class="form-select form-select-sm">
+                        <option value="">Todas las UV</option>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label form-label-sm fw-bold">Manzana (MZA)</label>
+                    <select id="selMza" class="form-select form-select-sm">
+                        <option value="">Todas las Mz</option>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label form-label-sm fw-bold">Lote</label>
+                    <select id="selLote" class="form-select form-select-sm">
+                        <option value="">Todos los Lotes</option>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label form-label-sm fw-bold">Estado</label>
+                    <select id="selEstado" class="form-select form-select-sm">
+                        <option value="">Todos los Estados</option>
+                        <option value="1">1 - Normal</option>
+                        <option value="2">2 - Para corte</option>
+                        <option value="3">3 - Cortado</option>
+                        <option value="4">4 - Baja parcial</option>
+                        <option value="5">5 - Baja total</option>
+                    </select>
+                </div>
+                <div class="col-lg-1 col-md-6 col-sm-12 d-flex align-items-end">
+                    <div class="d-flex gap-1 w-100">
+                        <button id="btnBuscar" class="btn btn-sm btn-primary flex-fill" title="Buscar"><i class="fas fa-search"></i></button>
+                        <button id="btnLimpiar" class="btn btn-sm btn-outline-secondary" title="Limpiar"><i class="fas fa-undo"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLA DE RESULTADOS -->
+        <div class="card shadow-sm border-0 p-3 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span id="lblTotalRegistros" class="fw-bold text-dark">Consultando registros...</span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small">Registros por página:</span>
+                    <select id="selPageSize" class="form-select form-select-sm" style="width:75px;">
+                        <option value="25">25</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle mb-0" style="font-size:13px;">
+                    <thead class="table-primary text-nowrap">
+                        <tr>
+                            <th># ID</th>
+                            <th>Código Fijo</th>
+                            <th>Código SIG</th>
+                            <th>Nombre / Titular</th>
+                            <th>Estado</th>
+                            <th>Ubicación (UV-Mz-Lt)</th>
+                            <th>Coordenadas (Lat, Lon)</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaResultados">
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Cargando datos...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINACIÓN -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <span id="lblPaginacionInfo" class="text-muted small">Página 1</span>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" id="btnPagePrev"><a class="page-link" href="#"><i class="fas fa-chevron-left"></i> Anterior</a></li>
+                        <li class="page-item disabled"><span class="page-link" id="lblPaginaActual">1</span></li>
+                        <li class="page-item" id="btnPageNext"><a class="page-link" href="#">Siguiente <i class="fas fa-chevron-right"></i></a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var currentPage = 1;
+        var totalPages = 1;
+
+        var estadoColores = {
+            1: '#27ae60', 2: '#f39c12', 3: '#e74c3c', 4: '#8e44ad', 5: '#2c3e50'
+        };
+        var estadoNombres = {
+            1: 'Normal', 2: 'Para corte', 3: 'Cortado', 4: 'Baja parcial', 5: 'Baja total'
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Cargar jerarquía de UVs inicial
+            cargarUVs();
+
+            // Eventos de cascada
+            document.getElementById('selUV').addEventListener('change', onUVChange);
+            document.getElementById('selMza').addEventListener('change', onMzaChange);
+
+            // Verificar si viene con parámetro de URL
+            var urlParams = new URLSearchParams(window.location.search);
+            var q = urlParams.get('texto');
+            if (q) {
+                document.getElementById('txtBusqueda').value = q;
+            }
+
+            ejecutarConsulta();
+
+            document.getElementById('btnBuscar').addEventListener('click', function () {
+                currentPage = 1;
+                ejecutarConsulta();
+            });
+
+            document.getElementById('txtBusqueda').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    currentPage = 1;
+                    ejecutarConsulta();
+                }
+            });
+
+            document.getElementById('btnLimpiar').addEventListener('click', function () {
+                document.getElementById('txtBusqueda').value = '';
+                document.getElementById('selUV').value = '';
+                document.getElementById('selMza').innerHTML = '<option value="">Todas las Mz</option>';
+                document.getElementById('selLote').innerHTML = '<option value="">Todos los Lotes</option>';
+                document.getElementById('selEstado').value = '';
+                currentPage = 1;
+                ejecutarConsulta();
+            });
+
+            document.getElementById('selPageSize').addEventListener('change', function () {
+                currentPage = 1;
+                ejecutarConsulta();
+            });
+
+            document.getElementById('btnPagePrev').addEventListener('click', function (e) {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    ejecutarConsulta();
+                }
+            });
+
+            document.getElementById('btnPageNext').addEventListener('click', function (e) {
+                e.preventDefault();
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    ejecutarConsulta();
+                }
+            });
+
+            document.getElementById('btnExportarCsv').addEventListener('click', function () {
+                var texto = document.getElementById('txtBusqueda').value.trim();
+                var uv = document.getElementById('selUV').value;
+                var mza = document.getElementById('selMza').value;
+                var lote = document.getElementById('selLote').value;
+                var estado = document.getElementById('selEstado').value;
+                var url = '/api/geosql/codigos-fijos/export-csv?texto=' + encodeURIComponent(texto) + 
+                          '&uv=' + encodeURIComponent(uv) + 
+                          '&mza=' + encodeURIComponent(mza) + 
+                          '&lote=' + encodeURIComponent(lote) + 
+                          '&estado=' + encodeURIComponent(estado);
+                window.location.href = url;
+            });
+        });
+
+        function cargarUVs() {
+            fetch('/api/geosql/zonas-jerarquia')
+                .then(r => r.json())
+                .then(data => {
+                    var sel = document.getElementById('selUV');
+                    sel.innerHTML = '<option value="">Todas las UV (' + data.length + ')</option>';
+                    data.forEach(function (uv) {
+                        var opt = document.createElement('option');
+                        opt.value = uv;
+                        opt.textContent = 'UV ' + uv;
+                        sel.appendChild(opt);
+                    });
+                })
+                .catch(err => console.error('Error cargando UVs:', err));
+        }
+
+        function onUVChange() {
+            var uv = document.getElementById('selUV').value;
+            var selMza = document.getElementById('selMza');
+            var selLote = document.getElementById('selLote');
+            selMza.innerHTML = '<option value="">Todas las Mz</option>';
+            selLote.innerHTML = '<option value="">Todos los Lotes</option>';
+
+            if (!uv) return;
+
+            fetch('/api/geosql/zonas-jerarquia?uv=' + encodeURIComponent(uv))
+                .then(r => r.json())
+                .then(data => {
+                    selMza.innerHTML = '<option value="">Todas las Mz (' + data.length + ')</option>';
+                    data.forEach(function (mza) {
+                        var opt = document.createElement('option');
+                        opt.value = mza;
+                        opt.textContent = 'Mza ' + mza;
+                        selMza.appendChild(opt);
+                    });
+                })
+                .catch(err => console.error('Error cargando manzanas:', err));
+        }
+
+        function onMzaChange() {
+            var uv = document.getElementById('selUV').value;
+            var mza = document.getElementById('selMza').value;
+            var selLote = document.getElementById('selLote');
+            selLote.innerHTML = '<option value="">Todos los Lotes</option>';
+
+            if (!uv || !mza) return;
+
+            fetch('/api/geosql/zonas-jerarquia?uv=' + encodeURIComponent(uv) + '&mza=' + encodeURIComponent(mza))
+                .then(r => r.json())
+                .then(data => {
+                    selLote.innerHTML = '<option value="">Todos los Lotes (' + data.length + ')</option>';
+                    data.forEach(function (lote) {
+                        var opt = document.createElement('option');
+                        opt.value = lote;
+                        opt.textContent = 'Lote ' + lote;
+                        selLote.appendChild(opt);
+                    });
+                })
+                .catch(err => console.error('Error cargando lotes:', err));
+        }
+
+        function ejecutarConsulta() {
+            var texto = document.getElementById('txtBusqueda').value.trim();
+            var uv = document.getElementById('selUV').value;
+            var mza = document.getElementById('selMza').value;
+            var lote = document.getElementById('selLote').value;
+            var estado = document.getElementById('selEstado').value;
+            var pageSize = document.getElementById('selPageSize').value;
+
+            var tbody = document.getElementById('tablaResultados');
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Cargando resultados...</td></tr>';
+
+            var url = '/api/geosql/codigos-fijos/consultar?page=' + currentPage + '&pageSize=' + pageSize +
+                      '&texto=' + encodeURIComponent(texto) + 
+                      '&uv=' + encodeURIComponent(uv) + 
+                      '&mza=' + encodeURIComponent(mza) + 
+                      '&lote=' + encodeURIComponent(lote) + 
+                      '&estado=' + encodeURIComponent(estado);
+
+            fetch(url)
+                .then(r => r.json())
+                .then(res => {
+                    var total = res.total || 0;
+                    var items = res.items || [];
+                    totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+                    document.getElementById('lblTotalRegistros').textContent = total.toLocaleString() + ' registros encontrados';
+                    document.getElementById('lblPaginacionInfo').textContent = 'Mostrando página ' + currentPage + ' de ' + totalPages + ' (' + total.toLocaleString() + ' en total)';
+                    document.getElementById('lblPaginaActual').textContent = currentPage;
+
+                    document.getElementById('btnPagePrev').classList.toggle('disabled', currentPage <= 1);
+                    document.getElementById('btnPageNext').classList.toggle('disabled', currentPage >= totalPages);
+
+                    tbody.innerHTML = '';
+                    if (items.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No se encontraron registros con los criterios especificados</td></tr>';
+                        return;
+                    }
+
+                    items.forEach(function (c) {
+                        var tr = document.createElement('tr');
+                        var color = estadoColores[c.estado] || '#7f8c8d';
+                        var estNombre = estadoNombres[c.estado] || 'Estado ' + c.estado;
+                        var coords = (c.latitud && c.longitud) ? (c.latitud.toFixed(5) + ', ' + c.longitud.toFixed(5)) : '<span class="text-muted">Sin geom</span>';
+
+                        tr.innerHTML =
+                            '<td><code>#' + (c.codF_SQL || c.idCodigo) + '</code></td>' +
+                            '<td><strong>' + (c.codFijo || 'N/A') + '</strong></td>' +
+                            '<td><code>' + (c.codF_SIG || 'N/A') + '</code></td>' +
+                            '<td class="fw-semibold">' + (c.nombre || 'Sin nombre registrado') + '</td>' +
+                            '<td><span class="badge" style="background:' + color + ';">' + estNombre + '</span></td>' +
+                            '<td>UV ' + (c.uv || '00') + ' - Mz ' + (c.mza || '00') + ' - Lt ' + (c.lote || '00') + '</td>' +
+                            '<td style="font-family:monospace; font-size:12px;">' + coords + '</td>' +
+                            '<td class="text-center">' +
+                                '<a href="/Mapa?buscar=' + encodeURIComponent(c.codF_SIG || c.codFijo || '') + '" class="btn btn-sm btn-outline-primary" title="Localizar en el mapa">' +
+                                    '<i class="fas fa-map-marker-alt"></i> Ver en Mapa' +
+                                '</a>' +
+                            '</td>';
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => {
+                    console.error('Error en consulta:', err);
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-danger"><i class="fas fa-exclamation-circle me-1"></i> Error al consultar los datos</td></tr>';
+                });
+        }
+    </script>
+}

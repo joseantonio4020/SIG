@@ -1,0 +1,42 @@
+@page
+@model VisorDatosSIG.Web.Pages.LoginModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Iniciar Sesion";
+    ViewData["HideNavbar"] = true;
+}
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-icon"><i class="fas fa-map-marked-alt"></i></div>
+            <h2>VisorDatosSIG</h2>
+            <p>Sistema de Informacion Geografica</p>
+        </div>
+        <form method="post">
+            <div class="mb-3">
+                <label for="login" class="form-label">Usuario</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    <input type="text" class="form-control" id="login" asp-for="Login" placeholder="Ingrese su usuario" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Contrasena</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" class="form-control" id="password" asp-for="Password" placeholder="Ingrese su contrasena" />
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> @Model.ErrorMessage
+                </div>
+            }
+            <button type="submit" class="btn btn-primary w-100 login-btn">
+                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+            </button>
+        </form>
+    </div>
+</div>

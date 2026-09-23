@@ -1,0 +1,164 @@
+@page
+@model VisorDatosSIG.Web.Pages.MapaModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Visor Cartográfico";
+}
+
+<div class="content-wrapper" style="height: calc(100vh - 56px); position: relative; overflow: hidden;">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <!-- HEADER MOVIL -->
+        <div class="d-flex d-md-none justify-content-between align-items-center p-2 bg-primary text-white">
+            <span class="fw-bold"><i class="fas fa-sliders-h me-1"></i> Filtros y Capas</span>
+            <button type="button" class="btn-close btn-close-white" id="btnCloseSidebar" aria-label="Close"></button>
+        </div>
+
+        <!-- BUSQUEDA RAPIDA -->
+        <div class="sidebar-section">
+            <div class="sidebar-header">
+                <span><i class="fas fa-search"></i> Búsqueda Rápida</span>
+            </div>
+            <div class="sidebar-body">
+                <div class="input-group">
+                    <input type="text" class="form-control form-control-sm" id="searchInput"
+                           placeholder="Buscar por código, nombre, UV..." />
+                    <button class="btn btn-sm btn-primary" id="btnSearch" title="Buscar">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" id="btnClearSearch" title="Limpiar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTROS POR ZONA -->
+        <div class="sidebar-section">
+            <div class="sidebar-header">
+                <span><i class="fas fa-sitemap"></i> Filtro por Zona</span>
+            </div>
+            <div class="sidebar-body">
+                <div class="form-group-sm mb-2">
+                    <label class="form-label-sm fw-bold">Unidad Vecinal (UV)</label>
+                    <select class="form-select form-select-sm" id="filtroUV">
+                        <option value="">Todas las UV</option>
+                    </select>
+                </div>
+                <div class="form-group-sm mb-2">
+                    <label class="form-label-sm fw-bold">Manzana (MZA)</label>
+                    <select class="form-select form-select-sm" id="filtroMza">
+                        <option value="">Todas las Manzanas</option>
+                    </select>
+                </div>
+                <div class="form-group-sm mb-2">
+                    <label class="form-label-sm fw-bold">Lote</label>
+                    <select class="form-select form-select-sm" id="filtroLote">
+                        <option value="">Todos los Lotes</option>
+                    </select>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-primary flex-fill" id="btnFiltrarZona">
+                        <i class="fas fa-filter"></i> Aplicar Filtro
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" id="btnLimpiarZona" title="Limpiar Filtro de Zona">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROL DE CAPAS -->
+        <div class="sidebar-section">
+            <div class="sidebar-header">
+                <span><i class="fas fa-layer-group"></i> Capas del Mapa</span>
+            </div>
+            <div class="sidebar-body">
+                <div class="form-group-sm mb-2">
+                    <label class="form-label-sm fw-bold">Mapa Base</label>
+                    <select class="form-select form-select-sm" id="baseLayerSelect">
+                        <option value="osm">OpenStreetMap</option>
+                        <option value="topo">OpenTopoMap</option>
+                        <option value="none">Sin Mapa Base</option>
+                    </select>
+                </div>
+                <div class="form-group-sm mb-2">
+                    <label class="form-label-sm fw-bold">Filtro por Estado</label>
+                    <select class="form-select form-select-sm" id="filtroEstado">
+                        <option value="">Todos los Estados</option>
+                        <option value="1">Normal (Activo)</option>
+                        <option value="2">Para corte</option>
+                        <option value="3">Cortado</option>
+                        <option value="4">Baja parcial</option>
+                        <option value="5">Baja total</option>
+                    </select>
+                </div>
+                <div class="layer-toggles">
+                    <label class="layer-toggle"><input type="checkbox" id="toggleCodigosFijos" checked /><span class="layer-color" style="background:#e74c3c"></span> Códigos Fijos</label>
+                    <label class="layer-toggle"><input type="checkbox" id="toggleManzanas" checked /><span class="layer-color" style="background:#3498db"></span> Manzanas</label>
+                    <label class="layer-toggle"><input type="checkbox" id="toggleLotes" checked /><span class="layer-color" style="background:#2ecc71"></span> Lotes</label>
+                    <label class="layer-toggle"><input type="checkbox" id="toggleVias" /><span class="layer-color" style="background:#95a5a6"></span> Vías / Calles</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEYENDA DINAMICA -->
+        <div class="sidebar-section">
+            <div class="sidebar-header"><span><i class="fas fa-palette"></i> Simbología de Estados</span></div>
+            <div class="sidebar-body">
+                <div class="legend-item"><span class="legend-dot" style="background:#27ae60"></span> <strong>1 - Normal:</strong> Servicio regular</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#f39c12"></span> <strong>2 - Para corte:</strong> Mora o pendiente</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#e74c3c"></span> <strong>3 - Cortado:</strong> Suspendido</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#8e44ad"></span> <strong>4 - Baja parcial:</strong> En retiro</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#2c3e50"></span> <strong>5 - Baja total:</strong> Desactivado</div>
+            </div>
+        </div>
+
+        <!-- RESULTADOS EN LISTA -->
+        <div class="sidebar-section" style="flex:1;">
+            <div class="results-header">
+                <span id="resultsCount" class="fw-bold">0 resultados</span>
+                <a href="#" class="btn-link-sm text-decoration-none" id="btnClearResults">Limpiar</a>
+            </div>
+            <div class="results-list" id="resultsList" style="max-height: 280px; overflow-y: auto;"></div>
+        </div>
+    </aside>
+
+    <!-- MAP CONTAINER -->
+    <main class="map-container" style="flex:1; position:relative;">
+        <!-- HERRAMIENTAS FLOTANTES DEL MAPA -->
+        <div class="map-floating-tools" style="position:absolute; top:12px; right:12px; z-index:1000; display:flex; gap:6px;">
+            <button class="btn btn-sm btn-primary shadow-sm d-md-none" id="btnToggleSidebar" title="Abrir Filtros y Capas">
+                <i class="fas fa-filter"></i> Filtros
+            </button>
+            <button class="btn btn-sm btn-light shadow-sm" id="btnZoomFull" title="Extensión General">
+                <i class="fas fa-expand-arrows-alt"></i> Extensión General
+            </button>
+            <button class="btn btn-sm btn-light shadow-sm" id="btnToggleDetails" title="Ver Detalle de Entidad" style="display:none;">
+                <i class="fas fa-info-circle text-primary"></i> Detalle
+            </button>
+        </div>
+
+        <!-- BARRA DE ESTADO / COORDENADAS (RF-VIS-09) -->
+        <div id="coordsBar" style="position:absolute; bottom:6px; left:12px; z-index:1000; background:rgba(255,255,255,0.85); padding:4px 10px; border-radius:4px; font-size:11px; font-family:monospace; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+            Coordenadas: -17.780000, -63.180000 | WGS 84 (EPSG:4326)
+        </div>
+
+        <div id="map" style="width: 100%; height: 100%;"></div>
+
+        <!-- PANEL LATERAL DE DETALLE DE ATRIBUTOS (RF-VIS-08, RF-VIS-10) -->
+        <div id="detailPanel" class="card shadow-lg" style="position:absolute; top:12px; right:12px; width:340px; z-index:1001; display:none; max-height:calc(100% - 40px); overflow-y:auto; border-radius:10px;">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
+                <span class="fw-bold"><i class="fas fa-id-card me-1"></i> Ficha Catastral</span>
+                <button type="button" class="btn-close btn-close-white" id="btnCloseDetail" aria-label="Close"></button>
+            </div>
+            <div class="card-body p-3" id="detailContent">
+                <!-- Se llena dinámicamente con JS al seleccionar -->
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script src="~/js/site.js"></script>
+}

@@ -1,0 +1,136 @@
+@using Microsoft.AspNetCore.Http
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - VisorDatosSIG</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        .nav-item-active {
+            background: rgba(255,255,255,0.2) !important;
+            font-weight: 600;
+        }
+        .page-content-scroll {
+            height: calc(100vh - 56px);
+            overflow-y: auto;
+            background-color: #f4f6f9;
+            padding: 24px;
+        }
+        .stat-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            border: none;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        .table-responsive-custom {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding: 16px;
+        }
+    </style>
+</head>
+<body>
+    @{
+        var hideNav = (bool?)ViewData["HideNavbar"] ?? false;
+        var usuario = Context.Session.GetString("Usuario") ?? "admin";
+        var rol = Context.Session.GetString("Rol") ?? "Administrador";
+        var esAdmin = rol == "Administrador";
+        var path = Context.Request.Path.Value ?? "";
+    }
+
+    @if (!hideNav)
+    {
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-main py-0 px-0" style="background:#1a237e;">
+            <div class="container-fluid px-3">
+                <a class="navbar-brand py-2" href="/Inicio" style="color:white; text-decoration:none; display:flex; align-items:center; gap:10px;">
+                    <div class="brand-icon"><i class="fas fa-layer-group"></i></div>
+                    <div class="brand-text">
+                        <strong>VisorDatosSIG</strong>
+                        <small>Sistema Catastral Municipal</small>
+                    </div>
+                </a>
+
+                <button class="navbar-toggler border-0 ms-auto me-0" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#navbarMainCollapse"
+                        aria-controls="navbarMainCollapse" aria-expanded="false" aria-label="Navegación"
+                        style="color:white;">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarMainCollapse"
+                     style="background:#1a237e;">
+                    <div class="navbar-menu me-auto py-2 py-lg-0">
+                        <a href="/Inicio" class="@(path.StartsWith("/Inicio") ? "nav-item-active" : "")">
+                            <i class="fas fa-chart-line"></i> Inicio
+                        </a>
+                        <a href="/Mapa" class="@(path.StartsWith("/Mapa") ? "nav-item-active" : "")">
+                            <i class="fas fa-map-marked-alt"></i> Visor Cartográfico
+                        </a>
+                        <a href="/Consultas" class="@(path.StartsWith("/Consultas") ? "nav-item-active" : "")">
+                            <i class="fas fa-search"></i> Consultas
+                        </a>
+
+                        @if (esAdmin)
+                        {
+                            <div class="dropdown d-block d-lg-inline-block">
+                                <a href="#" class="dropdown-toggle @(path.StartsWith("/Administracion") ? "nav-item-active" : "")"
+                                   data-bs-toggle="dropdown" data-bs-auto-close="true"
+                                   id="navbarDropdownAdmin" role="button" aria-expanded="false"
+                                   style="color:white; text-decoration:none; padding:10px 14px; display:block; border-radius:6px;">
+                                    <i class="fas fa-user-shield me-1"></i> Administración
+                                </a>
+                                <ul class="dropdown-menu shadow admin-dropdown-menu" aria-labelledby="navbarDropdownAdmin"
+                                    style="background:#0d1738 !important; border:1px solid rgba(255,255,255,0.25) !important; border-radius:8px !important; padding:6px 0 !important; min-width:230px !important;">
+                                    <li>
+                                        <a class="dropdown-item admin-dropdown-item" href="/Administracion/Usuarios"
+                                           style="color:#ffffff !important; font-weight:600 !important; padding:10px 18px !important; display:flex !important; align-items:center !important;">
+                                            <i class="fas fa-users-cog me-2" style="color:#90caf9 !important; font-size:16px;"></i> Gestión de Usuarios
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item admin-dropdown-item" href="/Administracion/Bitacora"
+                                           style="color:#ffffff !important; font-weight:600 !important; padding:10px 18px !important; display:flex !important; align-items:center !important;">
+                                            <i class="fas fa-clipboard-list me-2" style="color:#90caf9 !important; font-size:16px;"></i> Bitácora de Auditoría
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+
+                        <a href="/Cuenta/Perfil" class="@(path.StartsWith("/Cuenta") ? "nav-item-active" : "")">
+                            <i class="fas fa-user-circle"></i> Mi Perfil
+                        </a>
+                        <a href="/Ayuda" class="@(path.StartsWith("/Ayuda") ? "nav-item-active" : "")">
+                            <i class="fas fa-question-circle"></i> Ayuda
+                        </a>
+                    </div>
+
+                    <div class="navbar-user py-2 py-lg-0 px-2 px-lg-0">
+                        <div class="text-lg-end me-lg-2">
+                            <span class="fw-bold" style="color:white;"><i class="fas fa-user me-1"></i>@usuario</span>
+                            <span class="badge @(esAdmin ? "bg-warning text-dark" : "bg-info") ms-1" style="font-size:10px;">@rol</span>
+                        </div>
+                        <a href="/Login?logout=true" class="btn btn-sm btn-outline-light ms-2 mt-1 mt-lg-0" title="Cerrar Sesión">
+                            <i class="fas fa-sign-out-alt"></i> Salir
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    }
+
+    @RenderBody()
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

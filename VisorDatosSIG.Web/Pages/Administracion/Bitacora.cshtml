@@ -1,0 +1,156 @@
+@page
+@model VisorDatosSIG.Web.Pages.Administracion.BitacoraModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Bitácora de Auditoría";
+}
+
+<div class="page-content-scroll">
+    <div class="container-fluid max-w-1200">
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-1"><i class="fas fa-clipboard-list text-primary me-2"></i>Bitácora de Auditoría y Migraciones</h3>
+                <p class="text-muted mb-0">Trazabilidad de accesos al sistema, eventos de seguridad e historial de migraciones.</p>
+            </div>
+            <div>
+                <button class="btn btn-outline-primary" onclick="cargarBitacoras()"><i class="fas fa-sync-alt me-1"></i> Actualizar</button>
+            </div>
+        </div>
+
+        <!-- PESTAÑAS -->
+        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold" id="pills-accesos-tab" data-bs-toggle="pill" data-bs-target="#pills-accesos" type="button" role="tab">
+                    <i class="fas fa-shield-alt me-1"></i> Accesos y Seguridad
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="pills-migraciones-tab" data-bs-toggle="pill" data-bs-target="#pills-migraciones" type="button" role="tab">
+                    <i class="fas fa-database me-1"></i> Historial de Migraciones
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+            <!-- TAB 1: ACCESOS -->
+            <div class="tab-pane fade show active" id="pills-accesos" role="tabpanel">
+                <div class="card shadow-sm border-0 p-3 mb-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size:13px;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th># ID</th>
+                                    <th>Fecha y Hora</th>
+                                    <th>Usuario</th>
+                                    <th>Tipo de Evento</th>
+                                    <th>Dirección IP</th>
+                                    <th>Detalles / Observaciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaAccesos">
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Cargando eventos...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: MIGRACIONES -->
+            <div class="tab-pane fade" id="pills-migraciones" role="tabpanel">
+                <div class="card shadow-sm border-0 p-3 mb-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size:13px;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th># ID</th>
+                                    <th>Fecha Migración</th>
+                                    <th>Operador / Usuario</th>
+                                    <th>Capas Procesadas</th>
+                                    <th>Total Registros</th>
+                                    <th>Estado</th>
+                                    <th>Observaciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaMigraciones">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Cargando historial de migraciones...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            cargarBitacoras();
+        });
+
+        function cargarBitacoras() {
+            // Cargar Accesos
+            fetch('/api/geosql/bitacora/accesos')
+                .then(r => r.json())
+                .then(logs => {
+                    var tbody = document.getElementById('tablaAccesos');
+                    tbody.innerHTML = '';
+                    if (!Array.isArray(logs) || logs.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No se registran eventos de acceso</td></tr>';
+                        return;
+                    }
+                    logs.forEach(function (log) {
+                        var tr = document.createElement('tr');
+                        var badgeClass = 'bg-secondary';
+                        if (log.tipoEvento === 'LOGIN_OK') badgeClass = 'bg-success';
+                        else if (log.tipoEvento === 'LOGIN_FAIL') badgeClass = 'bg-danger';
+                        else if (log.tipoEvento === 'LOGOUT') badgeClass = 'bg-warning text-dark';
+                        else if (log.tipoEvento.startsWith('USER_')) badgeClass = 'bg-info';
+
+                        var fechaStr = new Date(log.fechaHora).toLocaleString('es-BO');
+
+                        tr.innerHTML =
+                            '<td><code>#' + log.idAcceso + '</code></td>' +
+                            '<td>' + fechaStr + '</td>' +
+                            '<td><strong>' + log.login + '</strong></td>' +
+                            '<td><span class="badge ' + badgeClass + '">' + log.tipoEvento + '</span></td>' +
+                            '<td><code>' + (log.direccionIP || '127.0.0.1') + '</code></td>' +
+                            '<td>' + (log.detalle || '-') + '</td>';
+                        tbody.appendChild(tr);
+                    });
+                });
+
+            // Cargar Migraciones
+            fetch('/api/geosql/bitacora/migraciones')
+                .then(r => r.json())
+                .then(logs => {
+                    var tbody = document.getElementById('tablaMigraciones');
+                    tbody.innerHTML = '';
+                    if (!Array.isArray(logs) || logs.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No se registran migraciones en el historial</td></tr>';
+                        return;
+                    }
+                    logs.forEach(function (m) {
+                        var tr = document.createElement('tr');
+                        var fechaStr = new Date(m.fechaMigracion).toLocaleString('es-BO');
+                        var badgeClass = m.estado === 'Completado' ? 'bg-success' : 'bg-primary';
+
+                        tr.innerHTML =
+                            '<td><code>#' + m.id + '</code></td>' +
+                            '<td>' + fechaStr + '</td>' +
+                            '<td><strong>' + (m.usuario || 'admin') + '</strong></td>' +
+                            '<td>' + (m.capasMigradas || 0) + ' capas</td>' +
+                            '<td><span class="badge bg-light text-dark border">' + Number(m.totalRegistros || 0).toLocaleString() + '</span></td>' +
+                            '<td><span class="badge ' + badgeClass + '">' + (m.estado || 'Completado') + '</span></td>' +
+                            '<td>' + (m.observaciones || '-') + '</td>';
+                        tbody.appendChild(tr);
+                    });
+                });
+        }
+    </script>
+}

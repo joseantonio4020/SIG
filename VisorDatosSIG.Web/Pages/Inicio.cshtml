@@ -1,0 +1,226 @@
+@page
+@model VisorDatosSIG.Web.Pages.InicioModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Panel Principal - Dashboard";
+    var usuario = HttpContext.Session.GetString("Usuario") ?? "admin";
+    var rol = HttpContext.Session.GetString("Rol") ?? "Administrador";
+}
+
+<div class="page-content-scroll">
+    <div class="container-fluid max-w-1200">
+        <!-- HEADER DE BIENVENIDA -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-1"><i class="fas fa-chart-line text-primary me-2"></i>Panel de Control Catastral</h3>
+                <p class="text-muted mb-0">Bienvenido(a), <strong>@usuario</strong> (@rol). Sistema de Gestión e Información Geográfica 2026.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/Mapa" class="btn btn-primary"><i class="fas fa-map-marked-alt me-1"></i> Abrir Visor Cartográfico</a>
+                <a href="/Consultas" class="btn btn-outline-secondary"><i class="fas fa-search me-1"></i> Consultas Alfanuméricas</a>
+            </div>
+        </div>
+
+        <!-- TARJETAS DE CONTEO GENERAL -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card stat-card bg-primary text-white p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-white-50 text-uppercase fw-semibold" style="font-size:12px;">Códigos Fijos</span>
+                            <h2 class="fw-bold mb-0" id="cardTotalCodigos"><span class="spinner-border spinner-border-sm"></span></h2>
+                        </div>
+                        <div style="font-size:32px; opacity:0.75;"><i class="fas fa-barcode"></i></div>
+                    </div>
+                    <small class="text-white-50 mt-2 d-block">Medidores y suministros activos</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card bg-info text-white p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-white-50 text-uppercase fw-semibold" style="font-size:12px;">Manzanas</span>
+                            <h2 class="fw-bold mb-0" id="cardTotalManzanas"><span class="spinner-border spinner-border-sm"></span></h2>
+                        </div>
+                        <div style="font-size:32px; opacity:0.75;"><i class="fas fa-cube"></i></div>
+                    </div>
+                    <small class="text-white-50 mt-2 d-block">Polígonos de manzanas catastrales</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card bg-success text-white p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-white-50 text-uppercase fw-semibold" style="font-size:12px;">Lotes</span>
+                            <h2 class="fw-bold mb-0" id="cardTotalLotes"><span class="spinner-border spinner-border-sm"></span></h2>
+                        </div>
+                        <div style="font-size:32px; opacity:0.75;"><i class="fas fa-home"></i></div>
+                    </div>
+                    <small class="text-white-50 mt-2 d-block">Predios y parcelas delimitadas</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card bg-secondary text-white p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-white-50 text-uppercase fw-semibold" style="font-size:12px;">Vías y Calles</span>
+                            <h2 class="fw-bold mb-0" id="cardTotalVias"><span class="spinner-border spinner-border-sm"></span></h2>
+                        </div>
+                        <div style="font-size:32px; opacity:0.75;"><i class="fas fa-road"></i></div>
+                    </div>
+                    <small class="text-white-50 mt-2 d-block">Red vial georreferenciada</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- DISTRIBUCIÓN POR ESTADO DE SUMINISTRO -->
+        <div class="row g-3 mb-4">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 h-100 p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="fas fa-pie-chart text-primary me-2"></i>Distribución de Códigos Fijos por Estado</h5>
+                        <span class="badge bg-light text-dark border" id="labelUltimaActualizacion">Actualizando...</span>
+                    </div>
+
+                    <div class="row g-2 text-center my-auto">
+                        <div class="col">
+                            <div class="p-3 rounded border" style="border-top: 4px solid #27ae60 !important;">
+                                <span class="badge" style="background:#27ae60;">Normal</span>
+                                <h3 class="fw-bold my-2 text-dark" id="countEstado1">-</h3>
+                                <small class="text-muted">Servicio activo</small>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="p-3 rounded border" style="border-top: 4px solid #f39c12 !important;">
+                                <span class="badge" style="background:#f39c12;">Para corte</span>
+                                <h3 class="fw-bold my-2 text-dark" id="countEstado2">-</h3>
+                                <small class="text-muted">En mora</small>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="p-3 rounded border" style="border-top: 4px solid #e74c3c !important;">
+                                <span class="badge" style="background:#e74c3c;">Cortado</span>
+                                <h3 class="fw-bold my-2 text-dark" id="countEstado3">-</h3>
+                                <small class="text-muted">Suspendido</small>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="p-3 rounded border" style="border-top: 4px solid #8e44ad !important;">
+                                <span class="badge" style="background:#8e44ad;">Baja parcial</span>
+                                <h3 class="fw-bold my-2 text-dark" id="countEstado4">-</h3>
+                                <small class="text-muted">En retiro</small>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="p-3 rounded border" style="border-top: 4px solid #2c3e50 !important;">
+                                <span class="badge" style="background:#2c3e50;">Baja total</span>
+                                <h3 class="fw-bold my-2 text-dark" id="countEstado5">-</h3>
+                                <small class="text-muted">Desactivado</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACCESOS DIRECTOS -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 h-100 p-3">
+                    <h5 class="fw-bold mb-3"><i class="fas fa-rocket text-primary me-2"></i>Accesos Rápidos</h5>
+                    <div class="list-group list-group-flush">
+                        <a href="/Mapa" class="list-group-item list-group-item-action d-flex align-items-center py-3">
+                            <i class="fas fa-map-marked-alt text-primary fa-2x me-3"></i>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Visor Cartográfico</h6>
+                                <small class="text-muted">Visualización multicapa y geolocalización</small>
+                            </div>
+                        </a>
+                        <a href="/Consultas" class="list-group-item list-group-item-action d-flex align-items-center py-3">
+                            <i class="fas fa-table text-success fa-2x me-3"></i>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Consultas Alfanuméricas</h6>
+                                <small class="text-muted">Filtros combinados y exportación a CSV</small>
+                            </div>
+                        </a>
+                        <a href="/Cuenta/Perfil" class="list-group-item list-group-item-action d-flex align-items-center py-3">
+                            <i class="fas fa-key text-warning fa-2x me-3"></i>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Seguridad y Perfil</h6>
+                                <small class="text-muted">Cambio de contraseña PBKDF2</small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIVIDAD RECIENTE EN BITÁCORA -->
+        <div class="card shadow-sm border-0 p-3 mb-4">
+            <h5 class="fw-bold mb-3"><i class="fas fa-history text-primary me-2"></i>Últimos Eventos de Auditoría</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size:13px;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fecha y Hora</th>
+                            <th>Usuario</th>
+                            <th>Evento</th>
+                            <th>IP Origen</th>
+                            <th>Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaUltimosAccesos">
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">Cargando bitácora...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/api/geosql/stats')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('cardTotalCodigos').textContent = Number(data.totalCodigos || 0).toLocaleString();
+                    document.getElementById('cardTotalManzanas').textContent = Number(data.totalManzanas || 0).toLocaleString();
+                    document.getElementById('cardTotalLotes').textContent = Number(data.totalLotes || 0).toLocaleString();
+                    document.getElementById('cardTotalVias').textContent = Number(data.totalVias || 0).toLocaleString();
+
+                    var est = data.estados || {};
+                    document.getElementById('countEstado1').textContent = Number(est['1'] || 0).toLocaleString();
+                    document.getElementById('countEstado2').textContent = Number(est['2'] || 0).toLocaleString();
+                    document.getElementById('countEstado3').textContent = Number(est['3'] || 0).toLocaleString();
+                    document.getElementById('countEstado4').textContent = Number(est['4'] || 0).toLocaleString();
+                    document.getElementById('countEstado5').textContent = Number(est['5'] || 0).toLocaleString();
+
+                    document.getElementById('labelUltimaActualizacion').textContent = 'Última consulta: ' + (data.fecha || 'Hoy');
+
+                    var tbody = document.getElementById('tablaUltimosAccesos');
+                    tbody.innerHTML = '';
+                    var accesos = data.ultimosAccesos || [];
+                    if (accesos.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No hay eventos recientes registrados</td></tr>';
+                    } else {
+                        accesos.forEach(function (log) {
+                            var tr = document.createElement('tr');
+                            var fechaStr = new Date(log.fechaHora).toLocaleString('es-BO');
+                            var badgeClass = log.tipoEvento === 'LOGIN_OK' ? 'bg-success' : (log.tipoEvento === 'LOGIN_FAIL' ? 'bg-danger' : 'bg-secondary');
+                            tr.innerHTML =
+                                '<td><code>' + fechaStr + '</code></td>' +
+                                '<td><strong>' + log.login + '</strong></td>' +
+                                '<td><span class="badge ' + badgeClass + '">' + log.tipoEvento + '</span></td>' +
+                                '<td>' + (log.direccionIP || '127.0.0.1') + '</td>' +
+                                '<td>' + (log.detalle || '-') + '</td>';
+                            tbody.appendChild(tr);
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error('Error cargando stats:', err);
+                });
+        });
+    </script>
+}

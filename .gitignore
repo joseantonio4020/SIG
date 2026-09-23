@@ -1,0 +1,21 @@
+## Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio & VS Code
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+## Database local files
+*.mdf
+*.ldf
+
+## OS generated
+.DS_Store
+Thumbs.db

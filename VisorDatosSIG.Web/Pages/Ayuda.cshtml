@@ -1,0 +1,139 @@
+@page
+@model VisorDatosSIG.Web.Pages.AyudaModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Manual y Ayuda del Sistema";
+}
+
+<div class="page-content-scroll">
+    <div class="container max-w-1000">
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-1"><i class="fas fa-question-circle text-primary me-2"></i>Manual de Usuario y Ayuda</h3>
+                <p class="text-muted mb-0">Guía de operación del VisorDatosSIG 2026 - UAGRM FICCT.</p>
+            </div>
+        </div>
+
+        <!-- ACORDEON DE SECCIONES -->
+        <div class="accordion shadow-sm border-0 mb-4" id="accordionAyuda">
+            <!-- 1. INTRODUCCIÓN -->
+            <div class="accordion-item border-0 mb-2 rounded shadow-sm">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                        <i class="fas fa-info-circle text-primary me-2"></i> 1. ¿Qué es VisorDatosSIG?
+                    </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionAyuda">
+                    <div class="accordion-body">
+                        <p><strong>VisorDatosSIG</strong> es una plataforma integral de Sistemas de Información Geográfica (SIG) y Catastro desarrollada para la visualización, consulta, auditoría y análisis espacial de la información territorial y de medidores/códigos fijos.</p>
+                        <p>El sistema soporta capas de <strong>Manzanas</strong> (polígonos), <strong>Lotes</strong> (polígonos), <strong>Vías</strong> (líneas) y <strong>Códigos Fijos</strong> (puntos con coordenadas geográficas en EPSG:4326).</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. SIMBOLOGÍA DE ESTADOS -->
+            <div class="accordion-item border-0 mb-2 rounded shadow-sm">
+                <h2 class="accordion-header" id="headingTwo">
+                    <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                        <i class="fas fa-palette text-success me-2"></i> 2. Estados de Códigos Fijos y Simbología
+                    </button>
+                </h2>
+                <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionAyuda">
+                    <div class="accordion-body">
+                        <p>Cada código fijo o medidor se clasifica dentro de 5 estados operativos normalizados:</p>
+                        <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item d-flex align-items-center">
+                                <span class="badge me-3 px-3 py-2" style="background:#27ae60;">Estado 1 - Normal</span>
+                                <div><strong>Servicio regular:</strong> El suministro está al día y habilitado. Se representa con círculo verde en el mapa.</div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <span class="badge me-3 px-3 py-2" style="background:#f39c12;">Estado 2 - Para corte</span>
+                                <div><strong>Mora o pendiente:</strong> Código con avisos de corte por deuda acumulada. Círculo naranja.</div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <span class="badge me-3 px-3 py-2" style="background:#e74c3c;">Estado 3 - Cortado</span>
+                                <div><strong>Servicio suspendido:</strong> Suministro interrumpido por personal técnico de corte. Círculo rojo.</div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <span class="badge me-3 px-3 py-2" style="background:#8e44ad;">Estado 4 - Baja parcial</span>
+                                <div><strong>Retiro parcial:</strong> Medidor o acometida en trámite de baja o retiro preventivo. Círculo morado.</div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <span class="badge me-3 px-3 py-2" style="background:#2c3e50;">Estado 5 - Baja total</span>
+                                <div><strong>Cancelado definitivo:</strong> Registro desactivado formalmente del catastro. Círculo gris oscuro.</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. VISOR CARTOGRÁFICO -->
+            <div class="accordion-item border-0 mb-2 rounded shadow-sm">
+                <h2 class="accordion-header" id="headingThree">
+                    <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                        <i class="fas fa-map-marked-alt text-info me-2"></i> 3. Navegación en el Visor Cartográfico
+                    </button>
+                </h2>
+                <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionAyuda">
+                    <div class="accordion-body">
+                        <ul>
+                            <li><strong>Zoom y Desplazamiento:</strong> Arrastre con el ratón o use los botones de zoom (+/-) y la rueda del mouse.</li>
+                            <li><strong>Extensión General:</strong> El botón superior derecho permite centrar y ajustar el zoom a la totalidad de los datos.</li>
+                            <li><strong>Identificación de Entidades:</strong> Haga clic sobre cualquier punto o polígono en el mapa para abrir la <em>Ficha Catastral</em> con información detallada del predio o medidor.</li>
+                            <li><strong>Filtrado por Zona:</strong> Seleccione la Unidad Vecinal (UV), Manzana (MZA) y Lote en el panel lateral para focalizar la zona de estudio.</li>
+                            <li><strong>Conmutación de Capas:</strong> Active o desactive capas según la necesidad técnica (Códigos fijos, Manzanas, Lotes, Vías).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. CONSULTAS Y EXPORTACIÓN -->
+            <div class="accordion-item border-0 mb-2 rounded shadow-sm">
+                <h2 class="accordion-header" id="headingFour">
+                    <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
+                        <i class="fas fa-table text-warning me-2"></i> 4. Búsquedas y Exportación a CSV
+                    </button>
+                </h2>
+                <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionAyuda">
+                    <div class="accordion-body">
+                        <p>El módulo de <strong>Consultas</strong> permite realizar búsquedas de texto parcial por Nombre del titular, Código SIG (ej. <code>01-05-12</code>) o Código Fijo numérico.</p>
+                        <p>Puede descargar el conjunto de datos filtrado en formato <strong>CSV delimitado por punto y coma (;)</strong> con codificación UTF-8 para análisis en Microsoft Excel o QGIS presionando el botón verde <em>"Exportar Resultados a CSV"</em>.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. SEGURIDAD Y AUDITORÍA -->
+            <div class="accordion-item border-0 mb-2 rounded shadow-sm">
+                <h2 class="accordion-header" id="headingFive">
+                    <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive">
+                        <i class="fas fa-shield-alt text-danger me-2"></i> 5. Seguridad y Roles
+                    </button>
+                </h2>
+                <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordionAyuda">
+                    <div class="accordion-body">
+                        <p>El sistema cuenta con autenticación criptográfica <strong>PBKDF2 con SHA-256 a 100,000 iteraciones</strong> y salt criptográfico de 32 bytes.</p>
+                        <p>Los roles disponibles son:</p>
+                        <ul>
+                            <li><strong>Administrador:</strong> Acceso ilimitado, gestión de usuarios, restablecimiento de contraseñas, visualización de bitácora y migración.</li>
+                            <li><strong>Consultor:</strong> Visualización del mapa, ejecución de consultas alfanuméricas y exportación de reportes.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACERCA DEL SISTEMA -->
+        <div class="card shadow-sm border-0 p-4 text-center">
+            <h5 class="fw-bold mb-1">VisorDatosSIG 2026</h5>
+            <p class="text-muted small mb-3">Universidad Autónoma Gabriel René Moreno (UAGRM)<br/>Facultad de Ingeniería en Ciencias de la Computación y Telecomunicaciones (FICCT)</p>
+            <div class="d-flex justify-content-center gap-3">
+                <span class="badge bg-light text-dark border">.NET 10 SDK</span>
+                <span class="badge bg-light text-dark border">SQL Server Spatial</span>
+                <span class="badge bg-light text-dark border">NetTopologySuite</span>
+                <span class="badge bg-light text-dark border">Leaflet JS</span>
+                <span class="badge bg-light text-dark border">PBKDF2 100k</span>
+            </div>
+        </div>
+    </div>
+</div>
